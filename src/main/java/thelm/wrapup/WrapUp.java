@@ -33,7 +33,7 @@ public class WrapUp {
 
 	public static final String MOD_ID = "wrapup";
 	public static final String NAME = "WrapUp";
-	public static final String VERSION = "1.12-1.1.1";
+	public static final String VERSION = "1.12-1.1.3";
 	public static final WrapUp INSTANCE = new WrapUp();;
 	public static ModMetadata metadata;
 
@@ -93,7 +93,7 @@ public class WrapUp {
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onVillagerProfessionRegisterLowest(RegistryEvent<VillagerProfession> event) {
+	public void onVillagerProfessionRegisterLowest(RegistryEvent.Register<VillagerProfession> event) {
 		MinecraftForge.EVENT_BUS.post(new RegistryWrapUpEvent.Event0());
 		MinecraftForge.EVENT_BUS.post(new RegistryWrapUpEvent.Event1());
 		MinecraftForge.EVENT_BUS.post(new RegistryWrapUpEvent.Event2());
@@ -102,7 +102,7 @@ public class WrapUp {
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onRecipeRegisterLowest(RegistryEvent<IRecipe> event) {
+	public void onRecipeRegisterLowest(RegistryEvent.Register<IRecipe> event) {
 		MinecraftForge.EVENT_BUS.post(new RecipeRegistryWrapUpEvent.Event0());
 		MinecraftForge.EVENT_BUS.post(new RecipeRegistryWrapUpEvent.Event1());
 		MinecraftForge.EVENT_BUS.post(new RecipeRegistryWrapUpEvent.Event2());

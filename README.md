@@ -1,2 +1,2 @@
 # WrapUp
-A simple library to wrap up initialization stages.
+A simple library to wrap up initializaton stages.

@@ -1,33 +1,60 @@
 buildscript {
     repositories {
+        maven {
+            url = "https://maven.minecraftforge.net/"
+        }
+        maven {
+            url = "https://plugins.gradle.org/m2/"
+        }
+        maven {
+            url = "https://jitpack.io/"
+        }
+        mavenCentral()
         jcenter()
-        maven { url = "http://files.minecraftforge.net/maven" }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+        classpath "net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT"
     }
 }
-apply plugin: 'net.minecraftforge.gradle.forge'
+
+apply plugin: "net.minecraftforge.gradle.forge"
+apply plugin: "eclipse"
+apply plugin: "maven-publish"
 
 repositories {
 }
 
 version = "1.12-1.1.3"
-group= "thelm.wrapup"
+group = "thelm.wrapup"
 archivesBaseName = "WrapUp"
 
 sourceCompatibility = targetCompatibility = "1.8"
 compileJava {
     sourceCompatibility = targetCompatibility = "1.8"
 }
+compileJava.options.encoding = "UTF-8"
 
 minecraft {
-    version = "1.12-14.21.1.2426"
+    version = "1.12.2-14.23.5.2847"
     runDir = "run"
-    mappings = "snapshot_20170624"
+    mappings = "stable_39"
+    clientRunArgs.add("--username=Dev")
     makeObfSourceJar = false
 }
 
 dependencies {
 }
 
+jar {
+    manifest {
+        attributes([
+                "Specification-Title": "WrapUp",
+                "Specification-Vendor": "thelm",
+                "Specification-Version": "1",
+                "Implementation-Title": "${archivesBaseName}",
+                "Implementation-Version": "${version}",
+                "Implementation-Vendor": "thelm"
+                //"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ],)
+    }
+}

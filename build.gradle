@@ -1,60 +1,135 @@
-buildscript {
-    repositories {
-        maven {
-            url = "https://maven.minecraftforge.net/"
-        }
-        maven {
-            url = "https://plugins.gradle.org/m2/"
-        }
-        maven {
-            url = "https://jitpack.io/"
-        }
-        mavenCentral()
-        jcenter()
-    }
-    dependencies {
-        classpath "net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT"
-    }
+plugins {
+	id "com.crystaelix.loom" version "1.9-SNAPSHOT"
+	id "eclipse"
+	id "idea"
+	id "maven-publish"
+	id "net.kyori.blossom" version "[1,2)"
+	id "me.modmuss50.mod-publish-plugin" version "0.8.4"
 }
-
-apply plugin: "net.minecraftforge.gradle.forge"
-apply plugin: "eclipse"
-apply plugin: "maven-publish"
 
 repositories {
+	mavenCentral()
+	flatDir {
+		dirs "libs"
+	}
 }
 
-version = "1.12-1.1.3"
+sourceSets {
+	main
+}
+
+def mcVersion = "1.12"
+def modName = "WrapUp"
+def modId = "wrapup"
+def specVersion = "1"
+def vendor = "thelm"
+
 group = "thelm.wrapup"
-archivesBaseName = "WrapUp"
+version = "1.1.3"
 
-sourceCompatibility = targetCompatibility = "1.8"
-compileJava {
-    sourceCompatibility = targetCompatibility = "1.8"
+archivesBaseName = "${modName}-${mcVersion}"
+
+java {
+	toolchain.languageVersion = JavaLanguageVersion.of(8)
+	withSourcesJar()
 }
-compileJava.options.encoding = "UTF-8"
 
-minecraft {
-    version = "1.12.2-14.23.5.2847"
-    runDir = "run"
-    mappings = "stable_39"
-    clientRunArgs.add("--username=Dev")
-    makeObfSourceJar = false
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = "UTF-8"
+}
+
+loom {
+	silentMojangMappingsLicense()
+	interfaceInjection.enableDependencyInterfaceInjection = false
+	runs {
+		configureEach {
+			property "fabric.log.console.level", "debug"
+			environmentVariable "MC_VERSION", mcVersion
+		}
+		client {
+			programArg "--username=Dev"
+		}
+		server
+	}
+	generatedIntermediateMappings()
 }
 
 dependencies {
+	// Minecraft
+	minecraft "com.mojang:minecraft:1.12.2"
+	mappings "de.oceanlabs.mcp:mcp_stable:39-1.12"
+	legacyForge "net.minecraftforge:forge:1.12.2-14.23.5.2860"
 }
 
+def replacements = [
+	"0@VERSION@": version
+]
+
+blossom {
+	replaceToken(replacements)
+}
+
+processResources {
+	inputs.properties(replacements)
+	filesMatching(["mcmod.info", "META-INF/mods.toml", "META-INF/neoforge.mods.toml"]) {
+		filter {
+			it.replace(replacements)
+		}
+	}
+}
+
+def manifestAttributes = [
+	"Specification-Title": modName,
+	"Specification-Vendor": vendor,
+	"Specification-Version": specVersion,
+	"Implementation-Title": archivesBaseName,
+	"Implementation-Version": version,
+	"Implementation-Vendor": vendor
+]
+
 jar {
-    manifest {
-        attributes([
-                "Specification-Title": "WrapUp",
-                "Specification-Vendor": "thelm",
-                "Specification-Version": "1",
-                "Implementation-Title": "${archivesBaseName}",
-                "Implementation-Version": "${version}",
-                "Implementation-Vendor": "thelm"
-                //"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ],)
-    }
+	manifest.attributes(manifestAttributes)
+}
+
+sourcesJar {
+	manifest.attributes(manifestAttributes)
+}
+
+publishing {
+	publications {
+		register("mavenJava", MavenPublication) {
+			artifact remapJar
+			artifact sourcesJar
+		}
+	}
+	repositories {
+		if(project.hasProperty("CrystaelixMavenUsername") && project.hasProperty("CrystaelixMavenPassword")) {
+			maven {
+				name = "CrystaelixMaven"
+				url = "https://maven.crystaelix.com/releases/"
+				credentials(PasswordCredentials)
+			}
+		}
+	}
+}
+
+publishMods {
+	file = remapJar.archiveFile
+	version = displayName = "${mcVersion}-${project.version}"
+	changelog = file("changelog.md").text
+	type = STABLE
+	modLoaders.add("forge")
+	additionalFiles.from(sourcesJar.archiveFile)
+
+	curseforge {
+		accessToken = providers.gradleProperty("curseforge.token")
+		projectId = "275153"
+		minecraftVersions.add(mcVersion)
+	}
+
+	modrinth {
+		accessToken = providers.gradleProperty("modrinth.token")
+		projectId = "vlot89Sj"
+		minecraftVersions.add(mcVersion)
+	}
 }
